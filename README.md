@@ -2,16 +2,46 @@
 
 A web application for performing Open Source Intelligence (OSINT) scans on domains. The application collects information about subdomains, email addresses, IP addresses, and social media profiles associated with a given domain.
 
+## Project Overview & Scope
+
+This tool provides security professionals and researchers with a simple interface to gather intelligence about domains through passive reconnaissance. It focuses on:
+
+- **Domain Reconnaissance**: Discover subdomains, IP addresses, and digital footprint
+- **Email Harvesting**: Find email addresses associated with the target domain  
+- **Social Media Presence**: Detect social media profiles linked to the domain
+- **Concurrent Scanning**: Run theHarvester and Amass tools in parallel for efficiency
+- **Data Persistence**: Store scan history with SQLite for future reference
+- **Data Export**: Generate Excel reports with detailed findings
+
+The application is designed for security assessments, competitive analysis, and cybersecurity research, all through a clean and intuitive interface.
+
 ## Features
 
 - Domain scanning with real-time results
 - Parallel execution of multiple OSINT tools (theHarvester and Amass)
 - Persisted scan results using SQLite
 - Merging and deduplication of results from multiple tools
-- Responsive interface built with React and Material UI
+- Responsive interface built with React and TypeScript
 - Excel export functionality
 - Dockerized deployment
 - Robust error handling and structured logging
+
+## Quick Start (3 Commands)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/tal-gellis/osint-app.git && cd osint-app
+
+# 2. Build the containers
+docker-compose build
+
+# 3. Start the application
+docker-compose up
+```
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
 
 ## Architecture
 
@@ -25,14 +55,14 @@ The application follows a client-server architecture:
   - Structured JSON logging
 
 - **Frontend:** React with TypeScript
-  - Material UI components
+  - Clean, responsive UI
   - Real-time updates of scan status
-  - Responsive card-based UI
+  - Card-based result display
   - Modal dialogs for detailed views
 
-## Quick Start
+## Development Mode
 
-### Development Mode
+If you want to run the services individually during development:
 
 1. Start the backend:
 ```bash
@@ -46,12 +76,6 @@ uvicorn main:app --reload
 cd frontend
 npm install
 npm start
-```
-
-### Docker Deployment
-
-```bash
-docker-compose up
 ```
 
 ## API Endpoints
