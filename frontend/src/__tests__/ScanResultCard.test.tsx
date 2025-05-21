@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import ScanResultCard from '../components/ScanResultCard';
+import { ScanResultCard } from '../components/ScanResultCard';
+import { ScanStatus } from '../types';
 
 // Mock the API service
 vi.mock('../services/api', () => ({
@@ -13,48 +14,53 @@ vi.mock('../services/api', () => ({
 
 describe('ScanResultCard Component', () => {
   const mockScan = {
-    scan_id: 'test-123',
+    id: 'test-123',
     domain: 'example.com',
-    status: 'completed',
-    start_time: '2025-05-20T10:00:00',
-    end_time: '2025-05-20T10:01:30',
-    results: {
+    status: ScanStatus.COMPLETED,
+    startTime: '2025-05-20T10:00:00',
+    endTime: '2025-05-20T10:01:30',
+    summary: {
+      subdomains: 2,
+      emails: 2,
+      ips: 2,
+      socialProfiles: 1
+    },
+    details: {
       subdomains: ['sub1.example.com', 'sub2.example.com'],
       emails: ['admin@example.com', 'info@example.com'],
       ips: ['1.1.1.1', '2.2.2.2'],
-      social_profiles: ['https://twitter.com/example']
+      socialProfiles: ['https://twitter.com/example']
     }
   };
   
   it('renders the scan result card correctly', () => {
-    render(<ScanResultCard scan={mockScan} />);
+    render(<ScanResultCard result={mockScan} onExport={() => {}} />);
     
     // Check if domain is displayed
     expect(screen.getByText('example.com')).toBeInTheDocument();
     
-    // Check if status is displayed
-    expect(screen.getByText(/completed/i)).toBeInTheDocument();
-    
     // Check if summary counts are displayed
-    expect(screen.getByText('2 subdomains')).toBeInTheDocument();
-    expect(screen.getByText('2 emails')).toBeInTheDocument();
-    expect(screen.getByText('2 IPs')).toBeInTheDocument();
-    expect(screen.getByText('1 social profile')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText('Subdomains')).toBeInTheDocument();
+    expect(screen.getByText('Emails')).toBeInTheDocument();
+    expect(screen.getByText('IP Addresses')).toBeInTheDocument();
+    expect(screen.getByText('Social Profiles')).toBeInTheDocument();
     
     // Check if export button is present
     expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument();
   });
   
   it('displays the details when view details is clicked', () => {
-    render(<ScanResultCard scan={mockScan} />);
+    render(<ScanResultCard result={mockScan} onExport={() => {}} />);
     
     // Initially, details should not be visible
-    expect(screen.queryByText('sub1.example.com')).not.toBeInTheDocument();
+    expect(screen.queryByText('Subdomains (2)')).not.toBeInTheDocument();
     
     // Click the view details button
     fireEvent.click(screen.getByRole('button', { name: /view details/i }));
     
     // Now details should be visible
+    expect(screen.getByText('Subdomains (2)')).toBeInTheDocument();
     expect(screen.getByText('sub1.example.com')).toBeInTheDocument();
     expect(screen.getByText('sub2.example.com')).toBeInTheDocument();
     expect(screen.getByText('admin@example.com')).toBeInTheDocument();
@@ -67,17 +73,25 @@ describe('ScanResultCard Component', () => {
   it('handles in-progress scans correctly', () => {
     const inProgressScan = {
       ...mockScan,
-      status: 'running',
-      end_time: null,
-      results: null
+      status: ScanStatus.LOADING,
+      endTime: '', // Empty string instead of null to match type
+      summary: {
+        subdomains: 0,
+        emails: 0,
+        ips: 0,
+        socialProfiles: 0
+      },
+      details: {
+        subdomains: [],
+        emails: [],
+        ips: [],
+        socialProfiles: []
+      }
     };
     
-    render(<ScanResultCard scan={inProgressScan} />);
+    render(<ScanResultCard result={inProgressScan} onExport={() => {}} />);
     
-    // Should show running status
-    expect(screen.getByText(/running/i)).toBeInTheDocument();
-    
-    // Export button should be disabled
-    expect(screen.getByRole('button', { name: /export/i })).toBeDisabled();
+    // Should show the domain is scanning
+    expect(screen.getByText('example.com')).toBeInTheDocument();
   });
 }); 

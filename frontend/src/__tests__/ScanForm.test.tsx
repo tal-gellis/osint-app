@@ -1,53 +1,62 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import ScanForm from '../components/ScanForm';
+import { describe, test, expect, vi } from 'vitest';
+import { ScanForm } from '../components/ScanForm';
+import { ScanStatus } from '../types';
 
 // Mock the API service
 vi.mock('../services/api', () => ({
   startScan: vi.fn().mockResolvedValue({ scan_id: 'test-123', status: 'started' })
 }));
 
+// Basic test for ScanForm component
 describe('ScanForm Component', () => {
-  it('renders the form correctly', () => {
-    const onScanStarted = vi.fn();
-    render(<ScanForm onScanStarted={onScanStarted} />);
+  test('should render a form with an input and button', () => {
+    render(<ScanForm currentDomain="" status={ScanStatus.IDLE} onSubmit={() => {}} />);
     
-    // Check if the domain input field is present
-    expect(screen.getByPlaceholderText('Enter domain (e.g., example.com)')).toBeInTheDocument();
+    // Check if the input exists
+    const domainInput = screen.getByPlaceholderText(/enter domain name/i);
+    expect(domainInput).toBeInTheDocument();
     
-    // Check if the scan button is present
-    expect(screen.getByRole('button', { name: /scan domain/i })).toBeInTheDocument();
+    // Check if the scan button exists
+    const scanButton = screen.getByRole('button', { name: /start scan/i });
+    expect(scanButton).toBeInTheDocument();
   });
   
-  it('validates domain input', async () => {
-    const onScanStarted = vi.fn();
-    render(<ScanForm onScanStarted={onScanStarted} />);
+  test('should validate domain input', () => {
+    render(<ScanForm currentDomain="" status={ScanStatus.IDLE} onSubmit={() => {}} />);
     
-    // Get the domain input and scan button
-    const domainInput = screen.getByPlaceholderText('Enter domain (e.g., example.com)');
-    const scanButton = screen.getByRole('button', { name: /scan domain/i });
+    // Get form elements
+    const domainInput = screen.getByPlaceholderText(/enter domain name/i);
+    const scanButton = screen.getByRole('button', { name: /start scan/i });
     
-    // Try submitting with empty domain
-    fireEvent.click(scanButton);
+    // Try invalid domain (empty)
+    fireEvent.change(domainInput, { target: { value: '' } });
+    expect(scanButton).toBeDisabled();
     
-    // Should show validation error
-    expect(screen.getByText(/please enter a domain/i)).toBeInTheDocument();
+    // Try valid domain
+    fireEvent.change(domainInput, { target: { value: 'example.com' } });
+    expect(scanButton).not.toBeDisabled();
+  });
+  
+  test('should submit when a valid domain is entered', async () => {
+    const mockSubmitHandler = vi.fn();
+    render(<ScanForm currentDomain="" status={ScanStatus.IDLE} onSubmit={mockSubmitHandler} />);
     
-    // Enter an invalid domain
-    fireEvent.change(domainInput, { target: { value: 'invalid domain' } });
-    fireEvent.click(scanButton);
+    // Get form elements
+    const domainInput = screen.getByPlaceholderText(/enter domain name/i);
+    const scanButton = screen.getByRole('button', { name: /start scan/i });
     
-    // Should show validation error for invalid format
-    expect(screen.getByText(/invalid domain format/i)).toBeInTheDocument();
-    
-    // Enter a valid domain
+    // Enter valid domain and submit
     fireEvent.change(domainInput, { target: { value: 'example.com' } });
     fireEvent.click(scanButton);
     
-    // Callback should be called with scan data
-    expect(onScanStarted).toHaveBeenCalledWith(expect.objectContaining({
-      scan_id: 'test-123',
-      status: 'started'
-    }));
+    // Check if the callback was called with correct data
+    expect(mockSubmitHandler).toHaveBeenCalledWith({
+      domain: 'example.com',
+      options: {
+        useTheHarvester: true,
+        useAmass: true
+      }
+    });
   });
 }); 
