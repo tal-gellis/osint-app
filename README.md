@@ -60,6 +60,29 @@ The application follows a client-server architecture:
   - Card-based result display
   - Modal dialogs for detailed views
 
+## Tests
+
+This project includes comprehensive test suites for both backend and frontend:
+
+### Backend Tests
+- **API Tests**: Test endpoints for scan creation, retrieval, and error handling
+- **Worker Tests**: Verify parallel execution of OSINT tools and result merging
+- **Storage Tests**: Validate data persistence and retrieval functionality
+
+To run backend tests:
+```bash
+cd backend
+pip install pytest pytest-asyncio
+python -m pytest tests/ -v
+```
+
+### Frontend Tests
+- **Component Tests**: Validate rendering and behavior of UI components
+- **Form Tests**: Ensure input validation and form submission work correctly
+- **Card Tests**: Verify result display and interaction
+
+More detailed testing information can be found in `backend/tests/README.md`.
+
 ## Development Mode
 
 If you want to run the services individually during development:

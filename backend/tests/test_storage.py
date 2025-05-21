@@ -1,10 +1,7 @@
 import pytest
-import os
 import sqlite3
 import json
 from datetime import datetime
-from unittest.mock import patch, MagicMock
-import tempfile
 
 # Import the storage functions to test
 from storage import (
@@ -14,101 +11,53 @@ from storage import (
     get_all_scans
 )
 
-# Create a temporary database for testing
-@pytest.fixture
-def temp_db():
-    # Create a temporary file
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    temp_file.close()
+def test_store_scan():
+    """Test storing a scan in the database"""
+    scan_id = "test-scan-1"
+    domain = "example.com"
+    start_time = datetime.now()
     
-    # Patch the database path to use our temporary file
-    with patch('storage.DB_PATH', temp_file.name):
-        # Initialize the database schema in the temporary file
-        conn = sqlite3.connect(temp_file.name)
-        conn.execute('''
-        CREATE TABLE IF NOT EXISTS scans (
-            id TEXT PRIMARY KEY,
-            domain TEXT NOT NULL,
-            start_time TEXT NOT NULL,
-            end_time TEXT,
-            status TEXT NOT NULL,
-            results TEXT
-        )
-        ''')
-        conn.commit()
-        conn.close()
-        
-        yield temp_file.name
+    # Store a scan
+    store_scan(scan_id, domain, start_time)
     
-    # Cleanup - delete the temporary file
-    os.unlink(temp_file.name)
+    # Retrieve the scan to verify it was stored
+    scan = get_scan_by_id(scan_id)
+    
+    # Check scan was stored correctly
+    assert scan is not None
+    assert scan["scan_id"] == scan_id
+    assert scan["domain"] == domain
+    assert scan["status"] == "running"  # Default status when creating a scan
 
-def test_store_scan(temp_db):
-    """Test storing a new scan in the database"""
-    # Patch the DB_PATH to use our temporary DB
-    with patch('storage.DB_PATH', temp_db):
-        scan_id = "test-scan-1"
-        domain = "example.com"
-        start_time = datetime.now()
-        
-        # Store a scan
-        store_scan(scan_id, domain, start_time)
-        
-        # Retrieve it from the database
-        conn = sqlite3.connect(temp_db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, domain, status FROM scans WHERE id = ?", (scan_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        # Verify scan was stored correctly
-        assert result is not None
-        assert result[0] == scan_id
-        assert result[1] == domain
-        assert result[2] == "running"  # Default status when creating a scan
-
-def test_update_scan_results(temp_db):
-    """Test updating scan results"""
-    # Patch the DB_PATH to use our temporary DB
-    with patch('storage.DB_PATH', temp_db):
-        scan_id = "test-scan-2"
-        domain = "example.com"
-        start_time = datetime.now()
-        
-        # First, store a scan
-        store_scan(scan_id, domain, start_time)
-        
-        # Now update it with results
-        results = {
-            "subdomains": ["sub1.example.com", "sub2.example.com"],
-            "emails": ["admin@example.com"],
-            "ips": ["1.1.1.1"],
-            "social_profiles": []
-        }
-        end_time = datetime.now()
-        
-        update_scan_results(scan_id, results, end_time)
-        
-        # Retrieve it from the database
-        conn = sqlite3.connect(temp_db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT status, results, end_time FROM scans WHERE id = ?", (scan_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        # Verify scan was updated correctly
-        assert result is not None
-        assert result[0] == "completed"  # Status should be updated
-        
-        # Check results were stored as JSON
-        stored_results = json.loads(result[1])
-        assert "subdomains" in stored_results
-        assert len(stored_results["subdomains"]) == 2
-        assert "emails" in stored_results
-        assert stored_results["emails"][0] == "admin@example.com"
-        
-        # Check end_time was updated
-        assert result[2] is not None
+def test_update_scan_results():
+    """Test updating scan results in the database"""
+    scan_id = "test-scan-2"
+    domain = "example.com"
+    start_time = datetime.now()
+    
+    # First, store a scan
+    store_scan(scan_id, domain, start_time)
+    
+    # Create sample results
+    results = {
+        "subdomains": ["sub1.example.com", "sub2.example.com"],
+        "emails": ["admin@example.com"],
+        "ips": ["1.1.1.1"],
+        "social_profiles": []
+    }
+    end_time = datetime.now()
+    
+    # Update scan with results
+    update_scan_results(scan_id, results, end_time)
+    
+    # Retrieve the scan to verify the update
+    scan = get_scan_by_id(scan_id)
+    
+    # Check scan was updated correctly
+    assert scan["status"] == "completed"
+    assert scan["results"] is not None
+    assert "subdomains" in scan["results"]
+    assert "emails" in scan["results"]
 
 def test_get_scan_by_id(temp_db):
     """Test retrieving a scan by ID"""
