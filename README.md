@@ -78,8 +78,15 @@ python -m pytest tests/ -v
 
 ### Frontend Tests
 - **Component Tests**: Validate rendering and behavior of UI components
-- **Form Tests**: Ensure input validation and form submission work correctly
-- **Card Tests**: Verify result display and interaction
+  - **ScanForm**: Tests form rendering, input validation, and submission
+  - **ScanResultCard**: Tests result display, details expansion, and export
+
+To run frontend tests:
+```bash
+cd frontend
+npm install
+npm test
+```
 
 More detailed testing information can be found in `backend/tests/README.md`.
 
