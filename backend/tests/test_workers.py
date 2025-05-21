@@ -7,6 +7,7 @@ from workers import (
     merge_results
 )
 
+@pytest.mark.asyncio
 async def test_the_harvester_strategy():
     """Test TheHarvesterStrategy executes and returns data"""
     scan_id = "test-scan-1"
@@ -22,6 +23,7 @@ async def test_the_harvester_strategy():
     assert isinstance(result["subdomains"], list)
     assert isinstance(result["emails"], list)
 
+@pytest.mark.asyncio
 async def test_amass_strategy():
     """Test AmassStrategy executes and returns data"""
     scan_id = "test-scan-1"
@@ -37,6 +39,7 @@ async def test_amass_strategy():
     assert isinstance(result["subdomains"], list)
     assert isinstance(result["ips"], list)
 
+@pytest.mark.asyncio
 async def test_merge_results():
     """Test results merging and deduplication"""
     # Sample results with duplicate data
