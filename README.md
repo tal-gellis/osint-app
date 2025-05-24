@@ -2,6 +2,20 @@
 
 A web application for performing Open Source Intelligence (OSINT) scans on domains. The application collects information about subdomains, email addresses, IP addresses, and social media profiles associated with a given domain.
 
+## Public Docker Images
+
+This application is available as public Docker images on Docker Hub:
+
+- **Backend**: `talgellis/osint-app-backend:latest`
+- **Frontend**: `talgellis/osint-app-frontend:latest`
+
+Anyone can pull and run these images without credentials:
+
+```bash
+docker pull talgellis/osint-app-backend:latest
+docker pull talgellis/osint-app-frontend:latest
+```
+
 ## Project Overview & Scope
 
 This tool provides security professionals and researchers with a simple interface to gather intelligence about domains through passive reconnaissance. It focuses on:
@@ -28,6 +42,19 @@ The application is designed for security assessments, competitive analysis, and 
 
 ## Quick Start (3 Commands)
 
+### Option 1: Using Public Docker Images (Recommended)
+```bash
+# 1. Clone the repository
+git clone https://github.com/tal-gellis/osint-app.git && cd osint-app
+
+# 2. Pull the public images (optional - docker-compose will pull automatically)
+docker pull talgellis/osint-app-backend:latest && docker pull talgellis/osint-app-frontend:latest
+
+# 3. Start the application
+docker-compose up
+```
+
+### Option 2: Build from Source
 ```bash
 # 1. Clone the repository
 git clone https://github.com/tal-gellis/osint-app.git && cd osint-app
